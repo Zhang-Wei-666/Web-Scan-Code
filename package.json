@@ -1,0 +1,22 @@
+{
+  "name": "web-scan-code",
+  "description": "",
+  "keywords": [],
+  "author": "Wei Zhang",
+  "license": "MIT",
+  "scripts": {
+    "build": "hu build",
+    "watch": "hu watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zhang-Wei-666/Web-Scan-Code.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Zhang-Wei-666/Web-Scan-Code/issues"
+  },
+  "homepage": "https://github.com/Zhang-Wei-666/Web-Scan-Code#readme",
+  "devDependencies": {
+    "@moomfe/hu-cli": "^1.10.0-bata.7"
+  }
+}
