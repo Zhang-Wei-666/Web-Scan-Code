@@ -4,6 +4,6 @@ module.exports = {
     browser: true
   },
   extends: [
-    'D:\\Program Files\\GitHub\\Web-Scan-Code\\node_modules\\@moomfe\\hu-cli\\.eslintrc.js'
+    './node_modules/@moomfe/hu-cli/.eslintrc.js'
   ]
 };
