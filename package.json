@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/Zhang-Wei-666/Web-Scan-Code#readme",
   "devDependencies": {
-    "@moomfe/hu-cli": "^1.10.0-bata.7"
+    "@moomfe/hu-cli": "^1.10.0-bata.9"
+  },
+  "dependencies": {
+    "webrtc-adapter": "^7.7.0"
   }
 }
