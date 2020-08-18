@@ -1,4 +1,9 @@
+import { BrowserQRCodeReader } from '@zxing/library';
 import elementStyle from './web-scan-code.scss?toString';
+
+
+/** @type {BrowserQRCodeReader} */
+let codeReader;
 
 
 class WebScanCode extends HTMLElement {
@@ -36,6 +41,8 @@ class WebScanCode extends HTMLElement {
           <div class="title">扫一扫</div>
         </div>
         <div id="content">
+          <!-- 视频流截取 -->
+          <canvas ref="canvas"></canvas>
           <!-- 视频流显示 -->
           <video ref="video" playsinline autoplay></video>
           <!-- 切换摄像头 -->
@@ -81,6 +88,8 @@ class WebScanCode extends HTMLElement {
   async toggleUserMedia(deviceId) {
     this.deviceId = deviceId;
 
+    clearTimeout(this.screenShotTimeout);
+
     // 关闭已经打开的摄像设备
     if (window.stream) {
       window.stream.getTracks().forEach((track) => {
@@ -103,6 +112,33 @@ class WebScanCode extends HTMLElement {
 
     // 播放视频流
     video.srcObject = stream;
+    // 渲染到 canvas 中
+    this.startScreenShot();
+  }
+
+  /**
+   * 进行屏幕截屏, 绘制到 Canvas 上
+   */
+  async startScreenShot() {
+    const { video, canvas } = this.$refs;
+    const { height: videoHeight, width: videoWidth } = video.getBoundingClientRect();
+    const canvasCtx = canvas.getContext('2d');
+
+    codeReader = codeReader || new BrowserQRCodeReader();
+    canvas.height = videoHeight;
+    canvas.width = videoWidth;
+    canvasCtx.drawImage(video, 0, 0, videoWidth, videoHeight);
+
+    try {
+      const result = await codeReader.decodeFromImage(undefined, canvas.toDataURL());
+
+      alert(result);
+    } catch (error) {}
+
+    this.screenShotTimeout = setTimeout(
+      () => this.startScreenShot(),
+      100
+    );
   }
 
   /**

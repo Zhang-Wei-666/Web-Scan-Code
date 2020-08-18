@@ -20,6 +20,7 @@
     "@moomfe/hu-cli": "^1.10.0-bata.9"
   },
   "dependencies": {
+    "@zxing/library": "^0.17.1",
     "webrtc-adapter": "^7.7.0"
   }
 }
