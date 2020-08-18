@@ -2,10 +2,14 @@ import 'webrtc-adapter';
 import './components/web-scan-code';
 
 /**
- * 当前设备摄像头 ID 数组
+ * 当前设备摄像头信息数组
  * @type {MediaDeviceInfo[]}
  */
 let videoDevices;
+
+
+// 测试样式
+// document.body.appendChild(document.createElement('web-scan-code'));
 
 
 /**
@@ -18,29 +22,19 @@ export default async function webScanCode(options = {}) {
     throw new Error('当前网络协议下无法调用摄像头 ...');
   }
 
-  // 获取当前设备摄像头 ID 数组
+  // 获取当前设备摄像头信息数组
   // 执行这一步会询问摄像头权限
   videoDevices = videoDevices || (await navigator.mediaDevices.enumerateDevices()).filter((device) => {
     return device.kind === 'videoinput';
   });
 
   /** @type {Element} 显示扫码界面 */
-  const elem = document.body.appendChild(document.createElement('web-scan-code'));
-  /** @type {Element} 显示视频流的 video 标签 */
-  const video = elem.$refs.video;
-  /** @type {DOMRect} 显示视频流的 video 标签元素位置 */
-  const videoRect = video.getBoundingClientRect();
+  const elem = document.body.appendChild(
+    document.createElement('web-scan-code')
+  );
 
-  /** @type {MediaStream} 视频流 */
-  const stream = await navigator.mediaDevices.getUserMedia({
-    audio: false,
-    video: {
-      width: videoRect.height,
-      height: videoRect.width,
-      deviceId: { exact: videoDevices[6].deviceId }
-    }
-  });
-
-  // 播放视频流
-  video.srcObject = stream;
+  // 写入摄像头信息数组
+  elem.setVideoDevices(videoDevices);
+  // 开启摄像头
+  elem.toggleUserMedia(videoDevices[0].deviceId);
 }
