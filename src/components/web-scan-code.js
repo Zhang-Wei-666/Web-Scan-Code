@@ -82,10 +82,10 @@ class WebScanCode extends HTMLElement {
   }
 
   /**
-   * 切换摄像头
+   * 打开 / 切换摄像头
    * @param {string} deviceId 摄像头 ID
    */
-  async toggleUserMedia(deviceId) {
+  async toggleVideoDevice(deviceId) {
     this.reset();
     this.deviceId = deviceId;
 
@@ -122,9 +122,10 @@ class WebScanCode extends HTMLElement {
     // 如果有正在解析的视频流, 进行关闭
     codeReader && codeReader.reset();
     // 如果有打开的视频流, 进行关闭
-    stream && stream.getTracks().forEach((track) => {
-      track.stop();
-    });
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      stream = undefined;
+    }
   }
 
   /**
@@ -135,11 +136,7 @@ class WebScanCode extends HTMLElement {
     const deviceIndex = videoDevices.findIndex((device) => device.deviceId === deviceId);
     const nextDevice = videoDevices[deviceIndex + 1] || videoDevices[0];
 
-    this.toggleUserMedia(nextDevice.deviceId);
-  }
-
-  disconnectedCallback() {
-    // this.$refs.video.pause();
+    this.toggleVideoDevice(nextDevice.deviceId);
   }
 }
 
