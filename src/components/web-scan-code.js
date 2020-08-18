@@ -13,9 +13,11 @@ class WebScanCode extends HTMLElement {
     super();
 
     /** @type {ShadowRoot} */
-    this.$el = this.attachShadow({ mode: 'open' });
+    this.el = this.attachShadow({ mode: 'open' });
     /** @type {Record<string, Element>} */
-    this.$refs = {};
+    this.refs = {};
+    /** @type {Record<string, Function[]>} */
+    this.events = Object.create(null);
 
     this.render();
   }
@@ -24,7 +26,7 @@ class WebScanCode extends HTMLElement {
    * 渲染元素内容
    */
   render() {
-    const { $el, $refs } = this;
+    const { el, refs } = this;
     const elementTemplate = document.createElement('template');
 
     // 安装 VSCode 的 lit-html 插件就可以高亮
@@ -34,9 +36,11 @@ class WebScanCode extends HTMLElement {
         <!-- 标题区域 -->
         <div id="header">
           <!-- 关闭按钮 -->
-          <svg class="close" viewBox="0 0 1024 1024">
-            <path d="M872 474H286.9l350.2-304c5.6-4.9 2.2-14-5.2-14h-88.5c-3.9 0-7.6 1.4-10.5 3.9L155 487.8c-14.7 12.8-14.7 35.6 0 48.3L535.1 866c1.5 1.3 3.3 2 5.2 2h91.5c7.4 0 10.8-9.2 5.2-14L286.9 550H872c4.4 0 8-3.6 8-8v-60c0-4.4-3.6-8-8-8z"></path>
-          </svg>
+          <div ref="close" class="close">
+            <svg viewBox="0 0 1024 1024">
+              <path d="M872 474H286.9l350.2-304c5.6-4.9 2.2-14-5.2-14h-88.5c-3.9 0-7.6 1.4-10.5 3.9L155 487.8c-14.7 12.8-14.7 35.6 0 48.3L535.1 866c1.5 1.3 3.3 2 5.2 2h91.5c7.4 0 10.8-9.2 5.2-14L286.9 550H872c4.4 0 8-3.6 8-8v-60c0-4.4-3.6-8-8-8z"></path>
+            </svg>
+          </div>
           <!-- 竖线 -->
           <div class="gap"></div>
           <!-- 标题 -->
@@ -58,19 +62,19 @@ class WebScanCode extends HTMLElement {
     `;
 
     // 写入元素内容
-    $el.appendChild(
+    el.appendChild(
       elementTemplate.content.cloneNode(true)
     );
 
     // 查找所有注册的引用信息
-    Array.from($el.querySelectorAll('[ref]')).forEach((elem) => {
-      $refs[elem.getAttribute('ref')] = elem;
+    Array.from(el.querySelectorAll('[ref]')).forEach((elem) => {
+      refs[elem.getAttribute('ref')] = elem;
     });
 
+    // 点击关闭按钮的事件监听
+    refs.close.addEventListener('click', () => this.onClickClose());
     // 点击切换摄像头按钮的事件监听
-    $refs.toggleCamera.addEventListener('click', (event) => {
-      this.clickToggleCamera();
-    });
+    refs.toggleCamera.addEventListener('click', () => this.onClickToggleCamera());
   }
 
   /**
@@ -89,7 +93,7 @@ class WebScanCode extends HTMLElement {
     this.reset();
     this.deviceId = deviceId;
 
-    const video = this.$refs.video;
+    const video = this.refs.video;
     const videoRect = video.getBoundingClientRect();
 
     codeReader = codeReader || new BrowserQRCodeReader();
@@ -110,7 +114,7 @@ class WebScanCode extends HTMLElement {
     // 解析视频流
     codeReader.decodeFromStream(stream, undefined, (result) => {
       if (result) {
-        alert(result);
+        this.dispatchEvent('decode:ok', result);
       }
     });
   }
@@ -128,15 +132,46 @@ class WebScanCode extends HTMLElement {
     }
   }
 
+  /** 事件绑定 */
+  addEventListener(type, fn) {
+    const events = this.events;
+    const fns = events[type] || (events[type] = []);
+
+    fns.push(fn);
+  }
+
+  /** 事件触发 */
+  dispatchEvent(type, ...args) {
+    const fns = this.events[type] || [];
+
+    for (const fn of fns) {
+      Reflect.apply(fn, this, args);
+    }
+  }
+
   /**
    * 点击了切换摄像头按钮
    */
-  clickToggleCamera() {
+  onClickToggleCamera() {
     const { videoDevices, deviceId } = this;
     const deviceIndex = videoDevices.findIndex((device) => device.deviceId === deviceId);
     const nextDevice = videoDevices[deviceIndex + 1] || videoDevices[0];
 
     this.toggleVideoDevice(nextDevice.deviceId);
+  }
+
+  /**
+   * 点击了关闭按钮
+   */
+  onClickClose() {
+    this.parentNode.removeChild(this);
+  }
+
+  /**
+   * 自定义元素被从文档流移除
+   */
+  disconnectedCallback() {
+    this.reset();
   }
 }
 

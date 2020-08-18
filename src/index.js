@@ -37,4 +37,9 @@ export default async function webScanCode(options = {}) {
   elem.setVideoDevices(videoDevices);
   // 开启摄像头
   elem.toggleVideoDevice(videoDevices[5].deviceId);
+
+  // 监听扫码成功事件
+  elem.addEventListener('decode:ok', (text) => {
+    elem.parentNode.removeChild(elem);
+  });
 }
