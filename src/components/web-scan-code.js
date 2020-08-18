@@ -4,6 +4,8 @@ import elementStyle from './web-scan-code.scss?toString';
 
 /** @type {BrowserQRCodeReader} */
 let codeReader;
+/** @type {MediaStream} */
+let stream;
 
 
 class WebScanCode extends HTMLElement {
@@ -41,8 +43,6 @@ class WebScanCode extends HTMLElement {
           <div class="title">扫一扫</div>
         </div>
         <div id="content">
-          <!-- 视频流截取 -->
-          <canvas ref="canvas"></canvas>
           <!-- 视频流显示 -->
           <video ref="video" playsinline autoplay></video>
           <!-- 切换摄像头 -->
@@ -86,20 +86,14 @@ class WebScanCode extends HTMLElement {
    * @param {string} deviceId 摄像头 ID
    */
   async toggleUserMedia(deviceId) {
+    this.reset();
     this.deviceId = deviceId;
-
-    clearTimeout(this.screenShotTimeout);
-
-    // 关闭已经打开的摄像设备
-    if (window.stream) {
-      window.stream.getTracks().forEach((track) => {
-        track.stop();
-      });
-    }
 
     const video = this.$refs.video;
     const videoRect = video.getBoundingClientRect();
-    const stream = window.stream = await navigator.mediaDevices.getUserMedia({
+
+    codeReader = codeReader || new BrowserQRCodeReader();
+    stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
         width: videoRect.height,
@@ -110,35 +104,27 @@ class WebScanCode extends HTMLElement {
       }
     });
 
+
     // 播放视频流
     video.srcObject = stream;
-    // 渲染到 canvas 中
-    this.startScreenShot();
+    // 解析视频流
+    codeReader.decodeFromStream(stream, undefined, (result) => {
+      if (result) {
+        alert(result);
+      }
+    });
   }
 
   /**
-   * 进行屏幕截屏, 绘制到 Canvas 上
+   * 重置状态
    */
-  async startScreenShot() {
-    const { video, canvas } = this.$refs;
-    const { height: videoHeight, width: videoWidth } = video.getBoundingClientRect();
-    const canvasCtx = canvas.getContext('2d');
-
-    codeReader = codeReader || new BrowserQRCodeReader();
-    canvas.height = videoHeight;
-    canvas.width = videoWidth;
-    canvasCtx.drawImage(video, 0, 0, videoWidth, videoHeight);
-
-    try {
-      const result = await codeReader.decodeFromImage(undefined, canvas.toDataURL());
-
-      alert(result);
-    } catch (error) {}
-
-    this.screenShotTimeout = setTimeout(
-      () => this.startScreenShot(),
-      100
-    );
+  reset() {
+    // 如果有正在解析的视频流, 进行关闭
+    codeReader && codeReader.reset();
+    // 如果有打开的视频流, 进行关闭
+    stream && stream.getTracks().forEach((track) => {
+      track.stop();
+    });
   }
 
   /**

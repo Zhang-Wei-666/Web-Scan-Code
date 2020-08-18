@@ -4,8 +4,7 @@
   z-index: 19950322;
 
   &, #app,
-  #content > video,
-  #content > canvas{
+  #content > video{
     width: 100%; height: 100%;
     overflow: hidden;
   }

@@ -36,5 +36,5 @@ export default async function webScanCode(options = {}) {
   // 写入摄像头信息数组
   elem.setVideoDevices(videoDevices);
   // 开启摄像头
-  elem.toggleUserMedia(videoDevices[0].deviceId);
+  elem.toggleUserMedia(videoDevices[5].deviceId);
 }
