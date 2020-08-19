@@ -15,8 +15,9 @@ let videoDevices;
 /**
  * 打开摄像头进行扫码
  * @param {{}} options
+ * @param {Function} options.success 扫码成功回调
  */
-export default async function webScanCode(options = {}) {
+async function webScanCode(options = {}) {
   // 网络协议错误
   if (navigator.mediaDevices.getUserMedia === undefined) {
     throw new Error('当前网络协议下无法调用摄像头 ...');
@@ -36,10 +37,16 @@ export default async function webScanCode(options = {}) {
   // 写入摄像头信息数组
   elem.setVideoDevices(videoDevices);
   // 开启摄像头
-  elem.toggleVideoDevice(videoDevices[5].deviceId);
+  elem.toggleVideoDevice(videoDevices[0].deviceId);
 
   // 监听扫码成功事件
-  elem.addEventListener('decode:ok', (text) => {
+  elem.addEventListener('decode:ok', (result) => {
     elem.parentNode.removeChild(elem);
+    options.success && options.success({
+      result
+    });
   });
 }
+
+
+export default webScanCode;

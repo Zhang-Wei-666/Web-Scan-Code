@@ -108,7 +108,6 @@ class WebScanCode extends HTMLElement {
       }
     });
 
-
     // 播放视频流
     video.srcObject = stream;
     // 解析视频流
