@@ -49,4 +49,7 @@ async function webScanCode(options = {}) {
 }
 
 
+webScanCode.version = '__VERSION__';
+
+
 export default webScanCode;
