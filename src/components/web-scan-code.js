@@ -114,7 +114,8 @@ class WebScanCode extends HTMLElement {
     // 解析视频流
     codeReader.decodeFromStream(stream, undefined, (result) => {
       if (result) {
-        this.dispatchEvent('decode:ok', result);
+        const text = result.getText();
+        this.dispatchEvent('decode:ok', text);
       }
     });
   }
