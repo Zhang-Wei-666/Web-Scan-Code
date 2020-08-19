@@ -1,6 +1,6 @@
 {
   "name": "web-scan-code",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "",
   "keywords": [],
   "title": "WebScanCode.js",
@@ -23,10 +23,9 @@
   },
   "homepage": "https://github.com/Zhang-Wei-666/Web-Scan-Code#readme",
   "devDependencies": {
-    "@moomfe/hu-cli": "^1.10.0-bata.9"
-  },
-  "dependencies": {
+    "@moomfe/hu-cli": "^1.10.0-bata.9",
     "@zxing/library": "^0.17.1",
     "webrtc-adapter": "^7.7.0"
-  }
+  },
+  "dependencies": {}
 }
