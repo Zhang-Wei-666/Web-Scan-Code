@@ -15,7 +15,9 @@ let videoDevices;
 /**
  * 打开摄像头进行扫码
  * @param {{}} options
- * @param {Function} options.success 扫码成功回调
+ * @param {Function | undefined} options.success 扫码成功回调
+ * @param {Function | undefined} options.deviceToggle 切换摄像头的回调
+ * @param {string | undefined} options.deviceId 需要默认开启的摄像头设备 ID
  */
 async function webScanCode(options = {}) {
   // 网络协议错误
@@ -29,6 +31,8 @@ async function webScanCode(options = {}) {
     return device.kind === 'videoinput';
   });
 
+  /** @type {string} 需要默认开启的摄像头设备 ID */
+  const deviceId = options.deviceId || videoDevices[0].deviceId;
   /** @type {Element} 显示扫码界面 */
   const elem = document.body.appendChild(
     document.createElement('web-scan-code')
@@ -37,13 +41,19 @@ async function webScanCode(options = {}) {
   // 写入摄像头信息数组
   elem.setVideoDevices(videoDevices);
   // 开启摄像头
-  elem.toggleVideoDevice(videoDevices[0].deviceId);
+  elem.toggleVideoDevice(deviceId);
 
   // 监听扫码成功事件
   elem.addEventListener('decode:ok', (result) => {
     elem.parentNode.removeChild(elem);
     options.success && options.success({
       result
+    });
+  });
+  // 监听摄像头切换事件
+  elem.addEventListener('device:toggle', (newDeviceId) => {
+    options.deviceToggle && options.deviceToggle({
+      deviceId: newDeviceId
     });
   });
 }

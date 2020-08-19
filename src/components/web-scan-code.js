@@ -92,6 +92,7 @@ class WebScanCode extends HTMLElement {
   async toggleVideoDevice(deviceId) {
     this.reset();
     this.deviceId = deviceId;
+    this.dispatchEvent('device:toggle', deviceId);
 
     const video = this.refs.video;
     const videoRect = video.getBoundingClientRect();
