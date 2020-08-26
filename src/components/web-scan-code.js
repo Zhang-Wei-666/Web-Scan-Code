@@ -1,11 +1,16 @@
-import { BrowserQRCodeReader } from '@zxing/library';
+import { BrowserQRCodeReader } from '@zxing/library'; // eslint-disable-line import/no-extraneous-dependencies
 import elementStyle from './web-scan-code.scss?toString';
 
 
-/** @type {BrowserQRCodeReader} */
+/**
+ * @type {BrowserQRCodeReader}
+ */
 let codeReader;
-/** @type {MediaStream} */
-let stream;
+/**
+ * 当前设备摄像头信息数组
+ * @type {MediaDeviceInfo[]}
+ */
+let videoDevices;
 
 
 class WebScanCode extends HTMLElement {
@@ -78,45 +83,68 @@ class WebScanCode extends HTMLElement {
   }
 
   /**
-   * 保存摄像头信息数组
-   * @param {MediaDeviceInfo[]} videoDevices 当前设备摄像头信息数组
+   * 启动扫码
    */
-  setVideoDevices(videoDevices) {
-    this.videoDevices = videoDevices;
+  async start(options) {
+    this.reset();
+
+    await this.getVideoDevices();
+    await this.getVideoStream(options.deviceId);
+    await this.getVideoDevices();
+
+    this.watchVideoStream();
   }
 
   /**
-   * 打开 / 切换摄像头
-   * @param {string} deviceId 摄像头 ID
+   * 获取当前设备摄像头信息
    */
-  async toggleVideoDevice(deviceId) {
-    this.reset();
+  async getVideoDevices() {
+    if (!videoDevices || !videoDevices.length) {
+      videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => {
+        return device.deviceId && device.kind === 'videoinput';
+      });
+    }
+  }
+
+  /**
+   * 调用摄像头并取得视频流
+   * @param {string} deviceId 需要开启的摄像头设备 ID
+   */
+  async getVideoStream(deviceId) {
     this.deviceId = deviceId;
-    this.dispatchEvent('device:toggle', deviceId);
-
-    const video = this.refs.video;
-    const videoRect = video.getBoundingClientRect();
-
-    codeReader = codeReader || new BrowserQRCodeReader();
-    stream = await navigator.mediaDevices.getUserMedia({
+    window.stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
-        width: videoRect.height,
-        height: videoRect.width,
-        deviceId: {
-          exact: deviceId
-        }
+        deviceId: deviceId ? { exact: deviceId } : undefined
       }
     });
+  }
 
+  /**
+   * 对视频流进行显示及解析
+   */
+  watchVideoStream() {
     // 播放视频流
-    video.srcObject = stream;
+    this.refs.video.srcObject = window.stream;
     // 解析视频流
-    codeReader.decodeFromStream(stream, undefined, (result) => {
+    (codeReader = codeReader || new BrowserQRCodeReader()).decodeFromStream(window.stream, undefined, (result) => {
       if (result) {
         const text = result.getText();
         this.dispatchEvent('decode:ok', text);
       }
+    });
+  }
+
+  /**
+   * 切换摄像头
+   * @param {string} deviceId 摄像头 ID
+   */
+  toggleVideoDevice(deviceId) {
+    this.reset();
+    this.dispatchEvent('device:toggle', deviceId);
+
+    this.getVideoStream(deviceId).then(() => {
+      this.watchVideoStream();
     });
   }
 
@@ -127,9 +155,9 @@ class WebScanCode extends HTMLElement {
     // 如果有正在解析的视频流, 进行关闭
     codeReader && codeReader.reset();
     // 如果有打开的视频流, 进行关闭
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      stream = undefined;
+    if (window.stream) {
+      window.stream.getTracks().forEach((track) => track.stop());
+      window.stream = undefined;
     }
   }
 
@@ -154,7 +182,7 @@ class WebScanCode extends HTMLElement {
    * 点击了切换摄像头按钮
    */
   onClickToggleCamera() {
-    const { videoDevices, deviceId } = this;
+    const { deviceId } = this;
     const deviceIndex = videoDevices.findIndex((device) => device.deviceId === deviceId);
     const nextDevice = videoDevices[deviceIndex + 1] || videoDevices[0];
 

@@ -1,12 +1,6 @@
 import 'webrtc-adapter';
 import './components/web-scan-code';
 
-/**
- * 当前设备摄像头信息数组
- * @type {MediaDeviceInfo[]}
- */
-let videoDevices;
-
 
 // 测试样式
 // document.body.appendChild(document.createElement('web-scan-code'));
@@ -25,23 +19,15 @@ async function webScanCode(options = {}) {
     throw new Error('当前网络协议下无法调用摄像头 ...');
   }
 
-  // 获取当前设备摄像头信息数组
-  // 执行这一步会询问摄像头权限
-  videoDevices = videoDevices || (await navigator.mediaDevices.enumerateDevices()).filter((device) => {
-    return device.kind === 'videoinput';
-  });
-
-  /** @type {string} 需要默认开启的摄像头设备 ID */
-  const deviceId = options.deviceId || videoDevices[0].deviceId;
   /** @type {Element} 显示扫码界面 */
   const elem = document.body.appendChild(
     document.createElement('web-scan-code')
   );
 
-  // 写入摄像头信息数组
-  elem.setVideoDevices(videoDevices);
   // 开启摄像头
-  elem.toggleVideoDevice(deviceId);
+  elem.start({
+    deviceId: options.deviceId
+  });
 
   // 监听扫码成功事件
   elem.addEventListener('decode:ok', (result) => {
