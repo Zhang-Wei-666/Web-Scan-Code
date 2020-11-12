@@ -16,7 +16,8 @@
       "Web-Scan-Code.code-workspace": true,
       "node_modules": true,
       "package-lock.json": true,
-      "src": true
+      "src": true,
+      "_gsdata_": true
     },
     "editor.tabSize": 2,
     "editor.detectIndentation": false,
@@ -24,7 +25,8 @@
       "source.fixAll.eslint": true
     },
     "search.exclude": {
-      "dist": true
+      "dist": true,
+      "_gsdata_": true
     }
   }
 }
