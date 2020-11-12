@@ -1,4 +1,8 @@
-import { BrowserQRCodeReader } from '@zxing/library'; // eslint-disable-line import/no-extraneous-dependencies
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable no-nested-ternary */
+
+
+import { BrowserQRCodeReader } from '@zxing/library';
 import elementStyle from './web-scan-code.scss?toString';
 
 
@@ -10,7 +14,7 @@ let codeReader;
  * 当前设备摄像头信息数组
  * @type {MediaDeviceInfo[]}
  */
-let videoDevices;
+let videoDevices = [];
 
 
 class WebScanCode extends HTMLElement {
@@ -99,7 +103,7 @@ class WebScanCode extends HTMLElement {
    * 获取当前设备摄像头信息
    */
   async getVideoDevices() {
-    if (!videoDevices || !videoDevices.length) {
+    if (!videoDevices.length) {
       videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => {
         return device.deviceId && device.kind === 'videoinput';
       });
@@ -111,7 +115,10 @@ class WebScanCode extends HTMLElement {
    * @param {string} deviceId 需要开启的摄像头设备 ID
    */
   async getVideoStream(deviceId) {
-    this.deviceId = deviceId;
+    // 如果当前触发的摄像头设备 ID 不在当前设备摄像头信息数组中, 那么直接使用第一个
+    // 有些手机在刷新页面后, 摄像头设备 ID 会更改, 这时候如果做过缓存, 直接拿缓存中的摄像头设备 ID 来调用摄像头时, 将会失败导致黑屏
+    this.deviceId = deviceId = videoDevices.length ? (videoDevices.find((item) => item.deviceId === deviceId) ? deviceId : videoDevices[0].deviceId) : deviceId;
+
     window.stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
@@ -182,7 +189,7 @@ class WebScanCode extends HTMLElement {
    * 点击了切换摄像头按钮
    */
   onClickToggleCamera() {
-    const { deviceId } = this;
+    const deviceId = this.deviceId;
     const deviceIndex = videoDevices.findIndex((device) => device.deviceId === deviceId);
     const nextDevice = videoDevices[deviceIndex + 1] || videoDevices[0];
 

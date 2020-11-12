@@ -1,3 +1,6 @@
+/* eslint-disable import/no-extraneous-dependencies */
+
+
 import 'webrtc-adapter';
 import './components/web-scan-code';
 
