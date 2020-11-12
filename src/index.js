@@ -39,6 +39,12 @@ async function webScanCode(options = {}) {
       result
     });
   });
+  // 监听摄像头调用事件
+  elem.addEventListener('device:call', (newDeviceId) => {
+    options.deviceCall && options.deviceCall({
+      deviceId: newDeviceId
+    });
+  });
   // 监听摄像头切换事件
   elem.addEventListener('device:toggle', (newDeviceId) => {
     options.deviceToggle && options.deviceToggle({

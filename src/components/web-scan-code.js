@@ -119,6 +119,8 @@ class WebScanCode extends HTMLElement {
     // 有些手机在刷新页面后, 摄像头设备 ID 会更改, 这时候如果做过缓存, 直接拿缓存中的摄像头设备 ID 来调用摄像头时, 将会失败导致黑屏
     this.deviceId = deviceId = videoDevices.length ? (videoDevices.find((item) => item.deviceId === deviceId) ? deviceId : videoDevices[0].deviceId) : deviceId;
 
+    this.dispatchEvent('device:call', deviceId);
+
     window.stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
