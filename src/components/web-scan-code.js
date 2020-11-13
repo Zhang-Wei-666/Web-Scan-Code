@@ -104,14 +104,9 @@ class WebScanCode extends HTMLElement {
    */
   async getVideoDevices() {
     if (!videoDevices.length) {
-      try {
-        videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => {
-          return device.deviceId && device.kind === 'videoinput';
-        });
-      } catch (error) {
-        this.dispatchEvent('error', error);
-        throw new Error(`${error.name}: ${error.message}`);
-      }
+      videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => {
+        return device.deviceId && device.kind === 'videoinput';
+      });
     }
   }
 
