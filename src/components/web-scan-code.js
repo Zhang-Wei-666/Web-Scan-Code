@@ -191,6 +191,14 @@ class WebScanCode extends HTMLElement {
    * 点击了关闭按钮
    */
   onClickClose() {
+    this.dispatchEvent('closeByClick');
+    this.close();
+  }
+
+  /**
+   * 关闭扫码界面弹窗
+   */
+  close() {
     this.dispatchEvent('close');
     this.parentNode.removeChild(this);
   }
