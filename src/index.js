@@ -16,6 +16,8 @@ import './components/web-scan-code';
  * @param {Function | undefined} options.error 程序发生错误的回调
  * @param {Function | undefined} options.deviceCall 摄像头调用的回调
  * @param {Function | undefined} options.deviceToggle 切换摄像头的回调
+ * @param {Function | undefined} options.open 扫码界面开启的回调
+ * @param {Function | undefined} options.close 扫码界面关闭的回调
  * @param {string | undefined} options.deviceId 需要默认开启的摄像头设备 ID
  */
 function webScanCode(options = {}) {
@@ -28,11 +30,6 @@ function webScanCode(options = {}) {
   const elem = document.body.appendChild(
     document.createElement('web-scan-code')
   );
-
-  // 开启摄像头
-  elem.start({
-    deviceId: options.deviceId
-  });
 
   // 监听扫码成功事件
   elem.addEventListener('decode:ok', (result) => {
@@ -50,6 +47,19 @@ function webScanCode(options = {}) {
   // 监听报错信息
   elem.addEventListener('error', (error) => {
     throwError(options, error);
+  });
+  // 监听弹窗打开事件
+  elem.addEventListener('open', () => {
+    options.open && options.open();
+  });
+  // 监听弹窗关闭事件
+  elem.addEventListener('close', () => {
+    options.close && options.close();
+  });
+
+  // 开启摄像头
+  elem.start({
+    deviceId: options.deviceId
   });
 
   return {

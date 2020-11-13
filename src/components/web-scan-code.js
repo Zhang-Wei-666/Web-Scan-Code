@@ -29,6 +29,7 @@ class WebScanCode extends HTMLElement {
     this.events = Object.create(null);
 
     this.render();
+    this.dispatchEvent('open');
   }
 
   /**
@@ -190,6 +191,7 @@ class WebScanCode extends HTMLElement {
    * 点击了关闭按钮
    */
   onClickClose() {
+    this.dispatchEvent('close');
     this.parentNode.removeChild(this);
   }
 
