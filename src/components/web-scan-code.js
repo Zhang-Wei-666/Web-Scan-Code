@@ -104,9 +104,14 @@ class WebScanCode extends HTMLElement {
    */
   async getVideoDevices() {
     if (!videoDevices.length) {
-      videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => {
-        return device.deviceId && device.kind === 'videoinput';
-      });
+      try {
+        videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => {
+          return device.deviceId && device.kind === 'videoinput';
+        });
+      } catch (error) {
+        this.dispatchEvent('error', error);
+        throw new Error(`${error.name}: ${error.message}`);
+      }
     }
   }
 
@@ -117,16 +122,21 @@ class WebScanCode extends HTMLElement {
   async getVideoStream(deviceId) {
     // 如果当前触发的摄像头设备 ID 不在当前设备摄像头信息数组中, 那么直接使用第一个
     // 有些手机在刷新页面后, 摄像头设备 ID 会更改, 这时候如果做过缓存, 直接拿缓存中的摄像头设备 ID 来调用摄像头时, 将会失败导致黑屏
-    this.deviceId = deviceId = videoDevices.length ? (videoDevices.find((item) => item.deviceId === deviceId) ? deviceId : videoDevices[0].deviceId) : deviceId;
+    this.deviceId = deviceId = videoDevices.length ? (videoDevices.find((item) => item.deviceId === deviceId) ? deviceId : videoDevices[0].deviceId) : undefined;
 
     this.dispatchEvent('device:call', deviceId);
 
-    window.stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        deviceId: deviceId ? { exact: deviceId } : undefined
-      }
-    });
+    try {
+      window.stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          deviceId: deviceId ? { exact: deviceId } : undefined
+        }
+      });
+    } catch (error) {
+      this.dispatchEvent('error', error);
+      throw new Error(`${error.name}: ${error.message}`);
+    }
   }
 
   /**
@@ -170,23 +180,6 @@ class WebScanCode extends HTMLElement {
     }
   }
 
-  /** 事件绑定 */
-  addEventListener(type, fn) {
-    const events = this.events;
-    const fns = events[type] || (events[type] = []);
-
-    fns.push(fn);
-  }
-
-  /** 事件触发 */
-  dispatchEvent(type, ...args) {
-    const fns = this.events[type] || [];
-
-    for (const fn of fns) {
-      Reflect.apply(fn, this, args);
-    }
-  }
-
   /**
    * 点击了切换摄像头按钮
    */
@@ -203,6 +196,23 @@ class WebScanCode extends HTMLElement {
    */
   onClickClose() {
     this.parentNode.removeChild(this);
+  }
+
+  /** 外部事件绑定 */
+  addEventListener(type, fn) {
+    const events = this.events;
+    const fns = events[type] || (events[type] = []);
+
+    fns.push(fn);
+  }
+
+  /** 外部事件触发 */
+  dispatchEvent(type, ...args) {
+    const fns = this.events[type] || [];
+
+    for (const fn of fns) {
+      Reflect.apply(fn, this, args);
+    }
   }
 
   /**
