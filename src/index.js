@@ -18,7 +18,7 @@ import './components/web-scan-code';
  * @param {Function | undefined} options.deviceToggle 切换摄像头的回调
  * @param {string | undefined} options.deviceId 需要默认开启的摄像头设备 ID
  */
-async function webScanCode(options = {}) {
+function webScanCode(options = {}) {
   // 网络协议错误
   if (navigator.mediaDevices.getUserMedia === undefined) {
     throw throwError(options, new Error('[web-scan-code] 当前网络协议下无法调用摄像头 ...'));
@@ -36,7 +36,7 @@ async function webScanCode(options = {}) {
 
   // 监听扫码成功事件
   elem.addEventListener('decode:ok', (result) => {
-    elem.parentNode.removeChild(elem);
+    elem.onClickClose();
     options.success && options.success({ result });
   });
   // 监听摄像头调用事件
@@ -51,13 +51,20 @@ async function webScanCode(options = {}) {
   elem.addEventListener('error', (error) => {
     throwError(options, error);
   });
+
+  return {
+    /** 关闭扫码框 */
+    close: () => {
+      elem.onClickClose();
+    }
+  };
 }
 
 /**
  * 触发程序发生错误的回调
  */
 function throwError(options, error) {
-  options.error && options.error({ error });
+  options.error && options.error(error);
   return error;
 }
 
