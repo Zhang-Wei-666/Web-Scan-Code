@@ -55,9 +55,9 @@ class WebScanCode extends HTMLElement {
           <!-- 标题 -->
           <div class="title">扫一扫</div>
         </div>
-        <div id="content">
+        <div id="content" ref="content">
           <!-- 视频流显示 -->
-          <video ref="video" playsinline autoplay></video>
+          <video ref="video" autoplay="true" muted="true" playsinline="true"></video>
           <!-- 切换摄像头 -->
           <div ref="toggleCamera" class="toggleCamera">
             <svg viewBox="0 0 1024 1024">
@@ -139,10 +139,22 @@ class WebScanCode extends HTMLElement {
    * 对视频流进行显示及解析
    */
   watchVideoStream() {
+    const stream = window.stream;
+
     // 播放视频流
-    this.refs.video.srcObject = window.stream;
+    //  - Tips: 部分版本的苹果手机, 不显示扫码界面, 暂时用这种方式解决下, 以后找到了根源再处理
+    {
+      const refs = this.refs;
+      const video = refs.video;
+      const newVideo = video.cloneNode();
+
+      newVideo.srcObject = stream;
+      refs.content.replaceChild(newVideo, video);
+      refs.video = newVideo;
+    }
+
     // 解析视频流
-    (codeReader = codeReader || new BrowserQRCodeReader()).decodeFromStream(window.stream, undefined, (result) => {
+    (codeReader = codeReader || new BrowserQRCodeReader()).decodeFromStream(stream, undefined, (result) => {
       if (result) {
         const text = result.getText();
         this.dispatchEvent('decode:ok', text);
